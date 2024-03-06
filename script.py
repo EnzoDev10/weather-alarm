@@ -2,7 +2,9 @@ import openmeteo_requests
 
 import requests_cache
 from retry_requests import retry
+
 import pandas as pd
+import datetime as dt
 from tabulate import tabulate
 
 
@@ -34,9 +36,12 @@ daily_precipitation_sum = daily.Variables(2).ValuesAsNumpy().tolist()
 
 
 # Rounds the values of a list to 1 decimal place
-def rounder(list):
-    rounded_list = [round(elem, 1) for elem in list]
-    return rounded_list
+def rounder(list, int=1):
+    try:
+        rounded_list = [round(elem, int) for elem in list]
+        return rounded_list
+    except TypeError:
+        return list
 
 
 daily_data = {
@@ -44,23 +49,35 @@ daily_data = {
         start=pd.to_datetime(daily.Time(), unit="s", utc=True),
         end=pd.to_datetime(daily.TimeEnd(), unit="s", utc=True),
         freq=pd.Timedelta(seconds=daily.Interval()),
-        inclusive="left"
+        inclusive="left",
     )
 }
 
+# Weekday gives an int to each date dpeneding on the day.  monday = 0
+# Sunday = 6. the map changes the int to then name equivalent
+daily_data["days"] = daily_data["date"].weekday.map(
+    {
+        0: "Monday",
+        1: "Tuesday",
+        2: "Wednesday",
+        3: "Thursday",
+        4: "Friday",
+        5: "saturday",
+        6: "Sunday",
+    }
+)
+
+
 daily_data["temp_max"] = rounder(daily_temperature_2m_max)
 daily_data["temp_min"] = rounder(daily_temperature_2m_min)
-daily_data["precipitation"] = rounder(daily_precipitation_sum)
+daily_data["precipitation"] = rounder(daily_precipitation_sum, 0)
 
 
 daily_dataframe = pd.DataFrame(data=daily_data)
 
-# Removes hours from date datetime objects
-daily_dataframe["date"] = pd.to_datetime(daily_dataframe["date"]).dt.date
-
+daily_dataframe["date"] = daily_dataframe["date"].dt.date
 
 print(tabulate(daily_dataframe, headers="keys", tablefmt="grid"))
-
 
 # TODO
 # 2 Detect if a precipitation value is above 25-50%.
