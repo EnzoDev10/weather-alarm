@@ -35,7 +35,7 @@ daily_temperature_2m_min = daily.Variables(1).ValuesAsNumpy().tolist()
 daily_precipitation_sum = daily.Variables(2).ValuesAsNumpy().tolist()
 
 
-# Rounds the values of a list to n places
+# Rounds the values of a list to n places.
 def rounder(list, n=1):
     try:
         rounded_list = [round(elem, n) for elem in list]
@@ -45,7 +45,7 @@ def rounder(list, n=1):
 
 
 daily_data = {
-    # Creates a a dict of dates that go from today to the next 6 days
+    # Creates a date range from today to the next 6 days.
     "date": pd.date_range(
         start=pd.to_datetime(daily.Time(), unit="s", utc=True),
         end=pd.to_datetime(daily.TimeEnd(), unit="s", utc=True),
@@ -54,9 +54,9 @@ daily_data = {
     )
 }
 
-# Weekday gives an int to each date dpeneding on the day.
+# Weekday returns an int to represent the day of a date.
 # Monday = 0 Sunday = 6.
-daily_data["days"] = daily_data["date"].weekday.map(
+daily_data["days_of_Week"] = daily_data["date"].weekday.map(
     {
         0: "Monday",
         1: "Tuesday",
@@ -71,26 +71,23 @@ daily_data["days"] = daily_data["date"].weekday.map(
 daily_data["temp_max"] = rounder(daily_temperature_2m_max)
 daily_data["temp_min"] = rounder(daily_temperature_2m_min)
 daily_data["precipitation"] = rounder(daily_precipitation_sum, 0)
-
-
 daily_dataframe = pd.DataFrame(data=daily_data)
 
-# Deletes the hours and second sfrom each date.
+# Deletes the hours and second from each date.
 daily_dataframe["date"] = daily_dataframe["date"].dt.date
 
-#print(tabulate(daily_dataframe, headers="keys", tablefmt="grid"))
+print(tabulate(daily_dataframe, headers="keys", tablefmt="grid"))
 
-print(type(daily_dataframe["precipitation"]), "\n")
-
-for date in daily_dataframe["precipitation"]:
-    if date > 25:
-        print(f"{date} is higher than 25%, it may rain!")
-        # Creates a dictionary containing the row in which the precipitaction is higher than 25
-        row = daily_dataframe.loc[daily_dataframe["precipitation"] == date].to_dict("records")[0]
-
-        print(f"On {row["date"]} the precipitation will be {row["precipitation"]}")
-    
-
+rain_dict = {}
+key_n = 0
+for rain_value in daily_dataframe["precipitation"]:
+    if rain_value > 1:
+        # Creates a dictionary with the rows that have a precipitaction higher than 25
+        row = daily_dataframe.loc[daily_dataframe["precipitation"] == rain_value].to_dict("records")[0]
+        rain_dict[f"day_{key_n}"] = []
+        rain_dict[f"day_{key_n}"].append(row)
+        key_n += 1
+print(rain_dict)
 
 # TODO
 # 3 know the day in which that will happen.
