@@ -81,17 +81,15 @@ print(tabulate(daily_dataframe, headers="keys", tablefmt="grid"))
 rain_dict = {}
 key_n = 0
 for rain_value in daily_dataframe["precipitation"]:
-    if rain_value > 1:
+    if rain_value > 50:
         # Creates a dictionary with the rows that have a precipitaction higher than 25
         row = daily_dataframe.loc[daily_dataframe["precipitation"] == rain_value].to_dict("records")[0]
         rain_dict[f"day_{key_n}"] = []
         rain_dict[f"day_{key_n}"].append(row)
+        print(f"On {rain_dict[f"day_{key_n}"][0]["date"]} the precipitation will be of {rain_dict[f"day_{key_n}"][0]["precipitation"]}%" )
         key_n += 1
-print(rain_dict)
+
 
 # TODO
-# 3 know the day in which that will happen.
-# 4 Assign both values to variables.
-# 5 Create a message template to notify about the values.
-# 6 Create a message template for the days when there is not rain.
-# 7 send an email each morning with one of the two messages.
+# 1 Add comands to show full 6 days forecast and one to show only the days with more precipitation
+# 2 Don't be lame print it in a nice style
